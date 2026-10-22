@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Tabel Quotation</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg: var(--tg-theme-bg-color, #ffffff);
+  --bg2: var(--tg-theme-secondary-bg-color, #f2f3f5);
+  --tx: var(--tg-theme-text-color, #16171a);
+  --hint: var(--tg-theme-hint-color, #8a8f98);
+  --acc: var(--tg-theme-button-color, #2481cc);
+  --acc-tx: var(--tg-theme-button-text-color, #ffffff);
+  --garis: color-mix(in srgb, var(--hint) 30%, transparent);
+  --merah: #d64545;
+  --wati: #1f9d55;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);
+  font:15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+main{padding:12px 12px 120px}
+h1{font-size:17px;margin:0 0 2px}
+.sub{color:var(--hint);font-size:13px;margin-bottom:10px}
+.kontak{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kontak label,.lbl{display:block;font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.tabel{border:1px solid var(--garis);border-radius:10px;overflow:hidden;background:var(--bg)}
+.kepala{background:var(--bg2);color:var(--hint);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;
+  display:grid;grid-template-columns:24px 1.5fr .7fr 1fr 1.1fr;gap:6px}
+.kepala span:nth-child(n+3){text-align:right}
+.baris{border-top:1px solid var(--garis);padding:9px 10px}
+.l1{display:grid;grid-template-columns:24px 1fr 30px;gap:6px;align-items:center}
+.l2{display:grid;grid-template-columns:24px 1.5fr .7fr 1fr 1.1fr;gap:6px;align-items:center;margin-top:6px}
+.l3{display:grid;grid-template-columns:24px 1.6fr 1fr;gap:6px;margin-top:6px}
+.ukuran{display:flex;align-items:center;gap:3px}
+.ukuran span{color:var(--hint);font-size:12px}
+.no{color:var(--hint);font-size:13px;text-align:center}
+input,select{width:100%;font:inherit;color:var(--tx);background:var(--bg2);border:1px solid transparent;
+  border-radius:7px;padding:7px 7px;min-width:0}
+input::placeholder{color:var(--hint)}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+input.num{text-align:right;font-variant-numeric:tabular-nums}
+input.salah{border-color:var(--merah)}
+.ket{font-size:11px;color:var(--hint);text-align:right;margin-top:2px}
+.sub-total{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.hapus{border:0;background:none;color:var(--hint);font-size:20px;line-height:1;padding:4px;cursor:pointer}
+.badge{display:inline-block;font-size:10px;font-weight:600;color:var(--wati);border:1px solid var(--wati);
+  border-radius:20px;padding:0 6px;margin:5px 0 0 30px}
+.tambah{width:100%;margin-top:10px;padding:10px;border:1px dashed var(--garis);background:none;color:var(--acc);
+  font:inherit;font-weight:600;border-radius:10px;cursor:pointer}
+.ringkas{margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ringkas label{color:var(--hint);font-size:13px;display:flex;align-items:center;gap:6px}
+.ringkas select{width:auto}
+.total{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.pesan{color:var(--merah);font-size:13px;min-height:18px;margin-top:8px;word-break:break-word}
+.luar{background:var(--bg2);border-radius:10px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--hint)}
+#kirimCadangan{display:none;width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;
+  background:var(--acc);color:var(--acc-tx);font:inherit;font-weight:600}
+@media (max-width:380px){ .kepala,.l1,.l2,.l3{gap:4px} input,select{padding:6px 5px;font-size:14px} }
+</style>
+</head>
+<body>
+<main>
+  <div id="luar" class="luar" hidden>Halaman ini dibuka di luar Telegram — mode uji. Tombol kirim hanya mencetak isinya.</div>
+  <h1>Quotation</h1>
+  <div class="sub" id="customer">—</div>
+
+  <div class="kontak">
+    <div><label for="kp">Contact person</label><input id="kp" placeholder="Nama"></div>
+    <div><label for="tl">Telepon</label><input id="tl" inputmode="tel" placeholder="+670 …"></div>
+  </div>
+
+  <div class="tabel" role="table" aria-label="Baris Quotation">
+    <div class="kepala" role="row">
+      <span>#</span><span>Ukuran L×T cm</span><span>Qty</span><span>Harga</span><span>Subtotal</span>
+    </div>
+    <div id="isi"></div>
+  </div>
+  <button class="tambah" id="tambah" type="button">+ Tambah baris</button>
+
+  <div class="ringkas">
+    <label>Berlaku
+      <select id="berlaku"><option value="7">7 hari</option><option value="14" selected>14 hari</option><option value="30">30 hari</option></select>
+    </label>
+    <div><span style="color:var(--hint);font-size:13px">Total USD</span><div class="total" id="total">$0.00</div></div>
+  </div>
+  <div class="pesan" id="pesan" role="alert"></div>
+  <button id="kirimCadangan" type="button">Kirim Quotation</button>
+  <datalist id="katalog"></datalist>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var diTelegram = !!(tg && tg.initData);
+  var muatan = {t: "", c: "", k: "", p: "", r: [], v: 14};
+  try {
+    var h = location.hash.slice(1);
+    if (h) {
+      h = h.replace(/-/g, "+").replace(/_/g, "/");
+      while (h.length % 4) h += "=";
+      var bytes = Uint8Array.from(atob(h), function (c) { return c.charCodeAt(0); });
+      muatan = Object.assign(muatan, JSON.parse(new TextDecoder().decode(bytes)));
+    }
+  } catch (e) { /* muatan rusak: mulai kosong */ }
+
+  // Katalog barang FoxPro: hanya NAMA dan SATUAN (tanpa harga, tanpa HPP).
+  var SATUAN = {};
+  fetch("katalog.json").then(function (r) { return r.json(); }).then(function (k) {
+    var dl = document.getElementById("katalog");
+    k.forEach(function (x) { SATUAN[x.n] = x.s; var o = document.createElement("option"); o.value = x.n; dl.appendChild(o); });
+    Array.prototype.forEach.call(isi.querySelectorAll(".baris"), function (el) { setelMode(el, true); });
+    hitung();
+  }).catch(function () {});
+
+  var isi = document.getElementById("isi");
+  var pesan = document.getElementById("pesan");
+  document.getElementById("customer").textContent = muatan.c || "Customer belum dipilih";
+  document.getElementById("kp").value = muatan.k || "";
+  document.getElementById("tl").value = muatan.p || "";
+  document.getElementById("berlaku").value = String(muatan.v || 14);
+
+  function uang(x) { return "$" + (x || 0).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+  function angka(v) { var n = parseFloat(String(v).replace(/,/g, ".")); return isFinite(n) ? n : 0; }
+
+  function perM2(el) { return el.dataset.m === "1"; }
+  function setelMode(el, dariKatalog) {
+    var nama = el.querySelector(".u").value.trim().toUpperCase();
+    if (dariKatalog && SATUAN[nama]) el.dataset.m = SATUAN[nama] === "m2" ? "1" : "0";
+    var m = perM2(el);
+    el.querySelector(".ukuran").style.visibility = m ? "visible" : "hidden";
+    el.querySelector(".ket").textContent = m ? "per m²" : "per unit";
+  }
+
+  function barisBaru(r, dariWati) {
+    r = r || {};
+    var el = document.createElement("div");
+    el.className = "baris"; el.setAttribute("role", "row");
+    el.dataset.m = r.m ? "1" : "0";
+    el.innerHTML =
+      '<div class="l1"><span class="no"></span>' +
+      '<input class="u" list="katalog" placeholder="Item (ketik untuk cari di katalog)" aria-label="Item">' +
+      '<button class="hapus" type="button" aria-label="Hapus baris">×</button></div>' +
+      '<div class="l2"><span></span>' +
+      '<div class="ukuran"><input class="l num" inputmode="decimal" placeholder="L" aria-label="Lebar cm"><span>×</span>' +
+      '<input class="t num" inputmode="decimal" placeholder="T" aria-label="Tinggi cm"></div>' +
+      '<input class="q num" inputmode="decimal" aria-label="Qty">' +
+      '<div><input class="h num" inputmode="decimal" placeholder="0" aria-label="Harga"><div class="ket"></div></div>' +
+      '<span class="sub-total">$0.00</span></div>' +
+      '<div class="l3"><span></span><input class="c" placeholder="Catatan / finishing (mis. mata ayam keliling)" aria-label="Catatan">' +
+      '<input class="d" placeholder="Deadline" aria-label="Deadline"></div>' +
+      (dariWati ? '<span class="badge">usulan Wati</span>' : "");
+    el.querySelector(".u").value = r.u || "";
+    el.querySelector(".l").value = r.l || "";
+    el.querySelector(".t").value = r.t || "";
+    el.querySelector(".q").value = r.q != null ? r.q : 1;
+    el.querySelector(".h").value = r.h ? r.h : "";
+    el.querySelector(".c").value = r.c || "";
+    el.querySelector(".d").value = r.d || "";
+    el.querySelector(".hapus").onclick = function () { el.remove(); hitung(); };
+    el.querySelector(".u").addEventListener("change", function () { setelMode(el, true); hitung(); });
+    el.addEventListener("input", hitung);
+    isi.appendChild(el);
+    setelMode(el, r.m === undefined);
+    return el;
+  }
+
+  function subtotal(el) {
+    var q = angka(el.querySelector(".q").value), h = angka(el.querySelector(".h").value);
+    if (perM2(el)) return angka(el.querySelector(".l").value) * angka(el.querySelector(".t").value) / 10000 * q * h;
+    return q * h;
+  }
+
+  function kumpulkan() {
+    return Array.prototype.map.call(isi.querySelectorAll(".baris"), function (el) {
+      var m = perM2(el);
+      return {u: el.querySelector(".u").value.trim(), m: m ? 1 : 0,
+              l: m ? angka(el.querySelector(".l").value) : 0, t: m ? angka(el.querySelector(".t").value) : 0,
+              q: angka(el.querySelector(".q").value), h: angka(el.querySelector(".h").value),
+              c: el.querySelector(".c").value.trim(), d: el.querySelector(".d").value.trim()};
+    });
+  }
+
+  function hitung() {
+    var total = 0;
+    Array.prototype.forEach.call(isi.querySelectorAll(".baris"), function (el, i) {
+      el.querySelector(".no").textContent = i + 1;
+      var sub = subtotal(el);
+      el.querySelector(".sub-total").textContent = uang(sub);
+      total += sub;
+    });
+    document.getElementById("total").textContent = uang(total);
+    pesan.textContent = "";
+    if (diTelegram) {
+      if (total > 0) tg.MainButton.setText("Kirim Quotation · " + uang(total)).show();
+      else tg.MainButton.hide();
+    }
+  }
+
+  function periksa() {
+    var salah = false, ada = 0;
+    Array.prototype.forEach.call(isi.querySelectorAll(".baris"), function (el) {
+      var f = ["u", "l", "t", "q", "h"].map(function (k) { return el.querySelector("." + k); });
+      f.forEach(function (x) { x.classList.remove("salah"); });
+      if (!f[0].value.trim() && !angka(f[4].value)) return;
+      ada++;
+      if (!f[0].value.trim()) { f[0].classList.add("salah"); salah = true; }
+      if (perM2(el)) {
+        if (angka(f[1].value) <= 0) { f[1].classList.add("salah"); salah = true; }
+        if (angka(f[2].value) <= 0) { f[2].classList.add("salah"); salah = true; }
+      }
+      if (angka(f[3].value) <= 0) { f[3].classList.add("salah"); salah = true; }
+      if (angka(f[4].value) <= 0) { f[4].classList.add("salah"); salah = true; }
+    });
+    if (!ada) { pesan.textContent = "Isi minimal satu baris."; return null; }
+    if (salah) { pesan.textContent = "Lengkapi kolom merah: item, ukuran (untuk barang per m²), qty > 0, harga > 0."; return null; }
+    return kumpulkan().filter(function (r) { return r.u || r.h; });
+  }
+
+  function kirim() {
+    var rows = periksa();
+    if (!rows) { if (diTelegram) tg.HapticFeedback.notificationOccurred("error"); return; }
+    var data = JSON.stringify({t: muatan.t, k: document.getElementById("kp").value.trim(),
+                               p: document.getElementById("tl").value.trim(), r: rows,
+                               v: parseInt(document.getElementById("berlaku").value, 10)});
+    if (data.length > 4000) { pesan.textContent = "Isi terlalu panjang untuk sekali kirim (" + data.length + " karakter). Pecah menjadi dua Quotation."; return; }
+    if (diTelegram) tg.sendData(data);
+    else { pesan.style.color = "var(--hint)"; pesan.textContent = "Mode uji — isi yang akan dikirim: " + data; }
+  }
+
+  (muatan.r || []).forEach(function (r) { barisBaru(r, true); });
+  if (!(muatan.r || []).length) barisBaru();
+  document.getElementById("tambah").onclick = function () { barisBaru().querySelector(".u").focus(); hitung(); };
+
+  if (diTelegram) {
+    tg.ready(); tg.expand();
+    tg.MainButton.onClick(kirim);
+  } else {
+    document.getElementById("luar").hidden = false;
+    document.getElementById("kirimCadangan").style.display = "block";
+    document.getElementById("kirimCadangan").onclick = kirim;
+  }
+  hitung();
+})();
+</script>
+</body>
+</html>

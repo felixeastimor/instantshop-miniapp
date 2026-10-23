@@ -164,7 +164,7 @@ input.salah{border-color:var(--merah)}
       '<span class="lbl4">Deadline (pilih tanggal &amp; jam)</span><div class="l4"><span></span>' +
       '<input class="dt" type="date" aria-label="Tanggal deadline">' +
       '<input class="jm" type="time" step="900" aria-label="Jam deadline"></div>' +
-      (dariWati ? '<span class="badge">usulan Wati</span>' : "");
+      (dariWati ? '<span class="badge">' + (muatan.a === "start" ? "pesanan customer" : "usulan Wati") + '</span>' : "");
     el.querySelector(".u").value = r.u || "";
     el.querySelector(".l").value = r.l || "";
     el.querySelector(".t").value = r.t || "";

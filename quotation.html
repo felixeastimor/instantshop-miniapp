@@ -97,10 +97,18 @@ input.salah{border-color:var(--merah)}
 (function () {
   "use strict";
   var tg = window.Telegram && window.Telegram.WebApp;
-  var diTelegram = !!(tg && tg.initData);
+  // Tombol Mini App di papan bawah (KeyboardButton) TIDAK memberi initData, tapi sendData tetap jalan.
+  // Jadi "di Telegram" = platform dikenal, bukan initData terisi (perbaikan 24 Okt 2026).
+  var diTelegram = !!(tg && ((tg.initData && tg.initData.length) || (tg.platform && tg.platform !== "unknown")));
   var muatan = {t: "", c: "", k: "", p: "", r: [], v: 14};
   try {
-    var h = location.hash.slice(1);
+    // Muatan dibawa di query ?d=... ; Telegram menimpa/menambah hash dengan tgWebAppData,
+    // jadi hash hanya dipakai sebagai cadangan (bagian sebelum '&', bukan parameter tgWebApp).
+    var h = new URLSearchParams(location.search).get("d") || "";
+    if (!h) {
+      h = location.hash.slice(1).split("&")[0];
+      if (h.indexOf("tgWebApp") === 0 || h.indexOf("=") > -1) h = "";
+    }
     if (h) {
       h = h.replace(/-/g, "+").replace(/_/g, "/");
       while (h.length % 4) h += "=";

@@ -29,10 +29,13 @@ h1{font-size:17px;margin:0 0 2px}
 .kepala{background:var(--bg2);color:var(--hint);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;
   display:grid;grid-template-columns:24px 1.5fr .7fr 1fr 1.1fr;gap:6px}
 .kepala span:nth-child(n+3){text-align:right}
-.baris{border-top:1px solid var(--garis);padding:9px 10px}
+.baris{border-top:1px solid var(--garis);padding:9px 10px;overflow:hidden}
 .l1{display:grid;grid-template-columns:24px 1fr 30px;gap:6px;align-items:center}
 .l2{display:grid;grid-template-columns:24px 1.5fr .7fr 1fr 1.1fr;gap:6px;align-items:center;margin-top:6px}
-.l3{display:grid;grid-template-columns:24px 1.6fr 1fr;gap:6px;margin-top:6px}
+.l3{display:grid;grid-template-columns:24px 1fr;gap:6px;margin-top:6px}
+.l4{display:grid;grid-template-columns:24px minmax(0,1.3fr) minmax(0,1fr);gap:6px;margin-top:4px;align-items:center}
+.lbl4{display:block;font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.04em;margin:6px 0 0 30px}
+input[type=date],input[type=time]{min-height:34px}
 .ukuran{display:flex;align-items:center;gap:3px}
 .ukuran span{color:var(--hint);font-size:12px}
 .no{color:var(--hint);font-size:13px;text-align:center}
@@ -57,7 +60,7 @@ input.salah{border-color:var(--merah)}
 .luar{background:var(--bg2);border-radius:10px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--hint)}
 #kirimCadangan{display:none;width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;
   background:var(--acc);color:var(--acc-tx);font:inherit;font-weight:600}
-@media (max-width:380px){ .kepala,.l1,.l2,.l3{gap:4px} input,select{padding:6px 5px;font-size:14px} }
+@media (max-width:380px){ .kepala,.l1,.l2,.l3,.l4{gap:4px} input,select{padding:6px 5px;font-size:14px} }
 </style>
 </head>
 <body>
@@ -122,6 +125,14 @@ input.salah{border-color:var(--merah)}
   document.getElementById("tl").value = muatan.p || "";
   document.getElementById("berlaku").value = String(muatan.v || 14);
 
+  function hariIni() {
+    var n = new Date(), z = function (x) { return (x < 10 ? "0" : "") + x; };
+    return n.getFullYear() + "-" + z(n.getMonth() + 1) + "-" + z(n.getDate());
+  }
+  function tenggat(el) {
+    var t = el.querySelector(".dt").value, j = el.querySelector(".jm").value;
+    return t ? (j ? t + " " + j : t) : "";
+  }
   function uang(x) { return "$" + (x || 0).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
   function angka(v) { var n = parseFloat(String(v).replace(/,/g, ".")); return isFinite(n) ? n : 0; }
 
@@ -149,8 +160,10 @@ input.salah{border-color:var(--merah)}
       '<input class="q num" inputmode="decimal" aria-label="Qty">' +
       '<div><input class="h num" inputmode="decimal" placeholder="0" aria-label="Harga"><div class="ket"></div></div>' +
       '<span class="sub-total">$0.00</span></div>' +
-      '<div class="l3"><span></span><input class="c" placeholder="Catatan / finishing (mis. mata ayam keliling)" aria-label="Catatan">' +
-      '<input class="d" placeholder="Deadline" aria-label="Deadline"></div>' +
+      '<div class="l3"><span></span><input class="c" placeholder="Catatan / finishing (mis. mata ayam keliling)" aria-label="Catatan"></div>' +
+      '<span class="lbl4">Deadline (pilih tanggal &amp; jam)</span><div class="l4"><span></span>' +
+      '<input class="dt" type="date" aria-label="Tanggal deadline">' +
+      '<input class="jm" type="time" step="900" aria-label="Jam deadline"></div>' +
       (dariWati ? '<span class="badge">usulan Wati</span>' : "");
     el.querySelector(".u").value = r.u || "";
     el.querySelector(".l").value = r.l || "";
@@ -158,7 +171,10 @@ input.salah{border-color:var(--merah)}
     el.querySelector(".q").value = r.q != null ? r.q : 1;
     el.querySelector(".h").value = r.h ? r.h : "";
     el.querySelector(".c").value = r.c || "";
-    el.querySelector(".d").value = r.d || "";
+    var dd = String(r.d || "").match(/^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2}))?/);
+    if (dd) { el.querySelector(".dt").value = dd[1]; el.querySelector(".jm").value = dd[2] || ""; }
+    else if (r.d) { el.querySelector(".dt").title = "Usulan: " + r.d; el.querySelector(".lbl4").textContent = "Deadline (" + String(r.d).slice(0, 18) + ")"; }
+    el.querySelector(".dt").min = hariIni();
     el.querySelector(".hapus").onclick = function () { el.remove(); hitung(); };
     el.querySelector(".u").addEventListener("change", function () { setelMode(el, true); hitung(); });
     el.addEventListener("input", hitung);
@@ -179,7 +195,7 @@ input.salah{border-color:var(--merah)}
       return {u: el.querySelector(".u").value.trim(), m: m ? 1 : 0,
               l: m ? angka(el.querySelector(".l").value) : 0, t: m ? angka(el.querySelector(".t").value) : 0,
               q: angka(el.querySelector(".q").value), h: angka(el.querySelector(".h").value),
-              c: el.querySelector(".c").value.trim(), d: el.querySelector(".d").value.trim()};
+              c: el.querySelector(".c").value.trim(), d: tenggat(el)};
     });
   }
 
@@ -200,10 +216,11 @@ input.salah{border-color:var(--merah)}
   }
 
   function periksa() {
-    var salah = false, ada = 0;
+    var salah = false, ada = 0, salahTgl = "";
     Array.prototype.forEach.call(isi.querySelectorAll(".baris"), function (el) {
       var f = ["u", "l", "t", "q", "h"].map(function (k) { return el.querySelector("." + k); });
-      f.forEach(function (x) { x.classList.remove("salah"); });
+      var dt = el.querySelector(".dt"), jm = el.querySelector(".jm");
+      f.concat([dt, jm]).forEach(function (x) { x.classList.remove("salah"); });
       if (!f[0].value.trim() && !angka(f[4].value)) return;
       ada++;
       if (!f[0].value.trim()) { f[0].classList.add("salah"); salah = true; }
@@ -213,7 +230,10 @@ input.salah{border-color:var(--merah)}
       }
       if (angka(f[3].value) <= 0) { f[3].classList.add("salah"); salah = true; }
       if (angka(f[4].value) <= 0) { f[4].classList.add("salah"); salah = true; }
+      if (jm.value && !dt.value) { dt.classList.add("salah"); salahTgl = "Jam deadline diisi tapi tanggalnya belum dipilih."; }
+      if (dt.value && dt.value < hariIni()) { dt.classList.add("salah"); salahTgl = "Tanggal deadline sudah lewat."; }
     });
+    if (salahTgl) { pesan.textContent = salahTgl; return null; }
     if (!ada) { pesan.textContent = "Isi minimal satu baris."; return null; }
     if (salah) { pesan.textContent = "Lengkapi kolom merah: item, ukuran (untuk barang per m²), qty > 0, harga > 0."; return null; }
     return kumpulkan().filter(function (r) { return r.u || r.h; });
